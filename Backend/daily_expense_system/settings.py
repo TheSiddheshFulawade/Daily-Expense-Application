@@ -3,17 +3,13 @@ import os
 from dotenv import load_dotenv
 from pathlib import Path
 from celery.schedules import crontab
+import dj_database_url
 
 load_dotenv()
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('SECRET_KEY')
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = ["*"]
 
@@ -38,6 +34,7 @@ INSTALLED_APPS = [
     'BalanceSheet_app',
     'django_celery_beat',
     'django_celery_results',
+    'whitenoise.runserver_nostatic',
 
 ]
 
@@ -49,6 +46,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'daily_expense_system.urls'
@@ -82,6 +80,9 @@ DATABASES = {
     }
 }
 
+# Update database configuration from $DATABASE_URL.
+db_from_env = dj_database_url.config(conn_max_age=600)
+DATABASES['default'].update(db_from_env)
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -115,7 +116,11 @@ USE_I18N = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = 'static/'
+# STATIC_URL = 'static/'
+
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -172,8 +177,12 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
 
-CELERY_BROKER_URL = 'redis://127.0.0.1:6379'
-CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379'
+# CELERY_BROKER_URL = 'redis://127.0.0.1:6379'
+# CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379'
+
+CELERY_BROKER_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379')
+CELERY_RESULT_BACKEND = os.environ.get('REDIS_URL', 'redis://localhost:6379')
+
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
@@ -185,3 +194,10 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='*/15'),  # It will run every 15 minutes
     },
 }
+
+
+# Ensure CSRF_TRUSTED_ORIGINS is set for Heroku
+CSRF_TRUSTED_ORIGINS = [os.environ.get('HEROKU_APP_URL', 'https://your-app-name.herokuapp.com')]
+
+# Ensure DEFAULT_FILE_STORAGE is set for Heroku
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
