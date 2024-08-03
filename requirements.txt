@@ -1,0 +1,11 @@
+Django
+djangorestframework
+djangorestframework-simplejwt
+django-cors-headers
+celery
+django-celery-results
+django-celery-beat
+redis
+openpyxl
+django-environ
+python-dotenv
