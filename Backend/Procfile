@@ -1,4 +1,0 @@
-release: python manage.py migrate
-web: gunicorn daily_expense_system.wsgi:application
-celery: celery -A daily_expense_system worker --pool=solo -l info
-celerybeat: celery -A daily_expense_system beat -l info
