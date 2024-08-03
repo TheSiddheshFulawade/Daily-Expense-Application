@@ -8,13 +8,14 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
-from rest_framework.generics import ListCreateAPIView
+from rest_framework.generics import CreateAPIView
 from django.core.files.storage import FileSystemStorage
 from django.contrib.auth.hashers import make_password  
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
-# View for listing all the users and creating a new user
-class UserListCreateView(ListCreateAPIView):
-    queryset = CustomUser.objects.all()
+# View for creating a new user
+class UserCreateView(CreateAPIView):
     serializer_class = UserSerializer
 
     # User registration
@@ -24,6 +25,15 @@ class UserListCreateView(ListCreateAPIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# View for listing the user data
+class UserDetailView(generics.RetrieveAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    def get_object(self):
+        return self.request.user
 
 # Login logic
 class UserLoginView(APIView):
