@@ -37,14 +37,23 @@ source env/bin/activate
 pip install -r requirements.txt
 ```
 
-**Step 3: Run the Django Server**
+**Step 3: Run Migrations**
 
-Navigate to the backend folder and start the server:
+Navigate to the backend folder and run the Django migrations to set up the database schema:
+
+```
+python manage.py migrate
+```
+
+**Step 4: Run the Django Server**
+
+Start the server:
 
 ```
 python manage.py runserver
 ```
-**Step 4: Run the Celery Server**
+
+**Step 5: Run the Celery Server**
 
 Create two more terminals, navigate to the backend folder, and execute the following commands to start the Celery worker server and Celery beat server:
 
